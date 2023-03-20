@@ -1,0 +1,106 @@
+@startuml
+hide empty members
+
+class Entry
+
+class LDAPConnectionOptions
+{
+    QString host
+    
+    int port
+    int version
+
+    QString basedn
+    QString username
+    QString password
+
+    bool simpleAuth
+    bool useSSL
+    bool useSASL
+    bool useAnonymous
+    
+    int  timeout
+
+    bool useTLS
+    
+    QString cacertfile
+    QString certfile
+    QString keyfile
+}
+
+class LDAPDatabase
+{
++ LDAPDatabase(const LDAPDatabase &other)
++ LDAPDatabase()
++ LDAPDatabase(const LDAPConnectionOptions& options)
++ LDAPDatabase &	operator=(const LDAPDatabase &other)
++ ~LDAPDatabase()
+
++ void close()
++ LDAPConnectionOptions connectionOptions() const
+}
+
+class LDAPError
+{
+}
+
+class EntrySearchModelPrivate
+{
++ LDAPDatabase& db
++ QVector<Entry> entries
+
++ EntrySearchModelPrivate(const LDAPDatabase& db = LDAPDatabase())
+}
+
+class EntrySearchModel extends QAbstractItemModel
+{
++ EntrySearchModel(QObject *parent = nullptr, const QString &query, const LDAPDatabase &db = LDAPDatabase())
++ EntrySearchModel(QObject *parent = nullptr, LDAPQuery& query)
+
+-- Reimplemented Public Functions --
+
++ bool canFetchMore(const QModelIndex &parent = QModelIndex()) const
++ int columnCount(const QModelIndex &index = QModelIndex()) const
++ QVariant data(const QModelIndex &item, int role = Qt::DisplayRole) const
++ void fetchMore(const QModelIndex &parent = QModelIndex())
++ QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const
++ bool insertColumns(int column, int count, const QModelIndex &parent = QModelIndex())
++ bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex())
++ QHash<int, QByteArray> 	roleNames() const
++ int rowCount(const QModelIndex &parent = QModelIndex()) const
++ bool setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role = Qt::EditRole)
+
+-- Public Functions --
+
++ void clear()
++ LDAPError lastError() const
++ LDAPQuery query() const
++ Entry record(int row) const
++ Entry record() const
++ void setQuery(LDAPQuery& query)
++ void setQuery(const QString &query, const LDAPDatabase &db = LDAPDatabase())
+
+--
+
+- QScopedPointer<EntrySearchModelPrivate> d
+}
+
+EntrySearchModel "1" *--> "1" EntrySearchModelPrivate : contains
+
+EntrySearchModel "1" --> "many" Entry
+
+EntrySearchModel "1" --> "1" LDAPError
+
+EntrySearchModelPrivate --> LDAPDatabase : references
+
+LDAPDatabase "1" *--> "1" LDAPConnectionOptions : contains
+
+class Request
+
+class SearchRequest extends Request
+
+note "The EntrySearchModel class provides a read-only data model for LDAP search result." as N1
+
+EntrySearchModel .. N1
+
+@enduml
