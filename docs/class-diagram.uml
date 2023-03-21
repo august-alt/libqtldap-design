@@ -1,5 +1,6 @@
 @startuml
 hide empty members
+skinparam linetype ortho
 
 class Entry
 
@@ -52,13 +53,16 @@ class EntrySearchModelPrivate
 + EntrySearchModelPrivate(const LDAPDatabase& db = LDAPDatabase())
 }
 
+class QAbstractItemModel
+{
+}
+
 class EntrySearchModel extends QAbstractItemModel
 {
 + EntrySearchModel(QObject *parent = nullptr, const QString &query, const LDAPDatabase &db = LDAPDatabase())
 + EntrySearchModel(QObject *parent = nullptr, LDAPQuery& query)
 
 -- Reimplemented Public Functions --
-
 + bool canFetchMore(const QModelIndex &parent = QModelIndex()) const
 + int columnCount(const QModelIndex &index = QModelIndex()) const
 + QVariant data(const QModelIndex &item, int role = Qt::DisplayRole) const
@@ -75,14 +79,57 @@ class EntrySearchModel extends QAbstractItemModel
 + void clear()
 + LDAPError lastError() const
 + LDAPQuery query() const
-+ Entry record(int row) const
-+ Entry record() const
++ Entry entry(int row) const
++ Entry entry() const
 + void setQuery(LDAPQuery& query)
 + void setQuery(const QString &query, const LDAPDatabase &db = LDAPDatabase())
 
 --
 
 - QScopedPointer<EntrySearchModelPrivate> d
+}
+
+class LDAPTreeModelPrivate
+{
++ LDAPDatabase& db
++ QVector<Entry&> topItems
+
++ LDAPTreeModelPrivate(const LDAPDatabase& db = LDAPDatabase())
+}
+
+class LDAPTreeModel extends QAbstractItemModel
+{
++ LDAPTreeModel(QObject *parent = nullptr, const LDAPDatabase &db = LDAPDatabase())
++ LDAPTreeModel(QObject *parent = nullptr, const QVector<Entry&> topItems, const LDAPDatabase &db = LDAPDatabase())
+
++ bool setTopItems(const QVector<Entry&> topItems)
+
++ QModelIndex addNewEntry(QModelIndex parent, const Entry& entry)
++ bool removeEntry(const Entry& entry)
+
++ LDAPError lastError() const
+
+-- Reimplemented Public Functions --
++ bool canFetchMore(const QModelIndex &parent) const
++ void clear()
++ bool clearItemData(const QModelIndex &index)
++ int columnCount(const QModelIndex &parent = QModelIndex()) const
++ QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
++ Qt::ItemFlags	flags(const QModelIndex &index) const
++ void fetchMore(const QModelIndex& parent)
++ bool hasChildren(const QModelIndex &parent) const
++ QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const
++ bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex())
++ bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex())
++ bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex())
++ int rowCount(const QModelIndex &parent = QModelIndex()) const
++ bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole)
++ void sort(int column, Qt::SortOrder order)
+
+-- Public slots --
++ void onRemoveEntry(const QModelIndex& index)
+
+- QScopedPointer<LDAPTreeModelPrivate> d;
 }
 
 EntrySearchModel "1" *--> "1" EntrySearchModelPrivate : contains
@@ -93,6 +140,16 @@ EntrySearchModel "1" --> "1" LDAPError
 
 EntrySearchModelPrivate --> LDAPDatabase : references
 
+
+LDAPTreeModel "1" *--> "1" LDAPTreeModelPrivate : contains
+
+LDAPTreeModel "1" --> "1" LDAPError
+
+LDAPTreeModel "1" --> "many" Entry
+
+LDAPTreeModelPrivate --> LDAPDatabase : references
+
+
 LDAPDatabase "1" *--> "1" LDAPConnectionOptions : contains
 
 class Request
@@ -100,7 +157,9 @@ class Request
 class SearchRequest extends Request
 
 note "The EntrySearchModel class provides a read-only data model for LDAP search result." as N1
+note "The LDAPTreeModel class provides a read-write data model for LDAP tree." as N2
 
-EntrySearchModel .. N1
+EntrySearchModel .u. N1
+LDAPTreeModel .u. N2
 
 @enduml
