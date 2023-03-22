@@ -1,0 +1,65 @@
+@startuml
+hide empty members
+skinparam linetype ortho
+
+class Entry
+
+class LDAPConnectionOptions
+{
+    QString host
+    
+    int port
+    int version
+
+    QString basedn
+    QString username
+    QString password
+
+    bool simpleAuth
+    bool useSSL
+    bool useSASL
+    bool useAnonymous
+    
+    int  timeout
+
+    bool useTLS
+    
+    QString cacertfile
+    QString certfile
+    QString keyfile
+}
+
+class LDAPDatabase
+{
++ LDAPDatabase(const LDAPDatabase &other)
++ LDAPDatabase()
++ LDAPDatabase(const LDAPConnectionOptions& options)
++ LDAPDatabase &	operator=(const LDAPDatabase &other)
++ ~LDAPDatabase()
+
++ void close()
++ LDAPConnectionOptions connectionOptions() const
+}
+
+class AttributeModelPrivate
+{
++ LDAPDatabase& db
++ Entry& entry
+
++ LDAPTreeModelPrivate(const LDAPDatabase& db = LDAPDatabase())
+}
+
+class AttributeModel extends QAbstractItemModel
+{
++ AttributeModel(QObject *parent = nullptr, const LDAPDatabase &db = LDAPDatabase())
++ AttributeModel(QObject *parent = nullptr, const Entry& entry, const LDAPDatabase &db = LDAPDatabase())
+
+- QScopedPointer<AttributeModelPrivate> d
+}
+
+AttributeModel "1" *--> "1" AttributeModelPrivate : contains
+
+AttributeModelPrivate --> LDAPDatabase : references
+
+LDAPDatabase "1" *--> "1" LDAPConnectionOptions : contains
+@enduml

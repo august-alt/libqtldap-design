@@ -1,3 +1,5 @@
 # Design of libqtldap library
 
-![Class Diagram](docs/class-diagram.png)
+![Enries Class Diagram](docs/class-diagram.png)
+
+![Attributes Class Diagram](docs/attributes-class-diagram.png)
