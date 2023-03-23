@@ -4,6 +4,8 @@ skinparam linetype ortho
 
 class Entry
 
+class Attribute
+
 class LDAPConnectionOptions
 {
     QString host
@@ -45,14 +47,37 @@ class AttributeModelPrivate
 {
 + LDAPDatabase& db
 + Entry& entry
++ QString baseDN;
 
 + LDAPTreeModelPrivate(const LDAPDatabase& db = LDAPDatabase())
 }
 
 class AttributeModel extends QAbstractItemModel
 {
-+ AttributeModel(QObject *parent = nullptr, const LDAPDatabase &db = LDAPDatabase())
 + AttributeModel(QObject *parent = nullptr, const Entry& entry, const LDAPDatabase &db = LDAPDatabase())
+
++ void setEntry(const Entry& entry);
++ void setBaseDN(const QString& baseDN);
+
++ QModelIndex addAttribute(const Attribute& attribute)
++ bool removeAttribute(const Attribute& attribute)
+
+-- Reimplemented Public Functions --
++ bool canFetchMore(const QModelIndex &parent) const
++ void clear()
++ bool clearItemData(const QModelIndex &index)
++ int columnCount(const QModelIndex &parent = QModelIndex()) const
++ QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const
++ Qt::ItemFlags	flags(const QModelIndex &index) const
++ void fetchMore(const QModelIndex& parent)
++ bool hasChildren(const QModelIndex &parent) const
++ QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const
++ bool insertRows(int row, int count, const QModelIndex &parent = QModelIndex())
++ bool removeColumns(int column, int count, const QModelIndex &parent = QModelIndex())
++ bool removeRows(int row, int count, const QModelIndex &parent = QModelIndex())
++ int rowCount(const QModelIndex &parent = QModelIndex()) const
++ bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole)
++ void sort(int column, Qt::SortOrder order)
 
 - QScopedPointer<AttributeModelPrivate> d
 }
@@ -62,4 +87,8 @@ AttributeModel "1" *--> "1" AttributeModelPrivate : contains
 AttributeModelPrivate --> LDAPDatabase : references
 
 LDAPDatabase "1" *--> "1" LDAPConnectionOptions : contains
+
+Entry "many" *--> "1" Attribute : contains
+
+AttributeModelPrivate "1" --> "1" Entry : references
 @enduml
